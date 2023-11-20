@@ -1,5 +1,7 @@
 
 import { Router, Request, Response } from 'express';
+import { SessionDocument, getSessions, createSession, joinSession,deleteSession } from '../db/models/session';
+
 
 const router = Router();
 
@@ -15,7 +17,7 @@ router.post('/sessions', (req: Request, res: Response) => {
     res.send('POST /sessions');
   });
   
-router.post('/sessions/:sessionId/join', (req: Request, res: Response) => {
+router.put('/sessions/:sessionId/join', (req: Request, res: Response) => {
     /* 
     
       Join a session, adds the user to the session, increases the number of participants in the session if the session is not full
@@ -26,7 +28,7 @@ router.post('/sessions/:sessionId/join', (req: Request, res: Response) => {
     res.send('POST /sessions/:sessionId/join');
   });
   
-router.post('/sessions/:sessionId/leave', (req: Request, res: Response) => {
+router.put('/sessions/:sessionId/leave', (req: Request, res: Response) => {
     /* 
       Leaves a session, removes the user from the session, decreases the number of participants in the session
       @param {string} sessionId - ID of the session to join

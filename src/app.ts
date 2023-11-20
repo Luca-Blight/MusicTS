@@ -11,6 +11,7 @@ import cors from 'cors';
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3001;
+const DB_PASSWORD = process.env.db_password;
 
 const app: Express = express();
 
@@ -31,7 +32,7 @@ const server = http.createServer(app);
 
 
 // MongoDB configuration
-const MONGO_URL = `mongodb+srv://rythm:${process.env.db_password}@cluster0.mb8znck.mongodb.net/?retryWrites=true&w=majority`;
+const MONGO_URL = `mongodb+srv://rythm:${process.env.DB_PASSWORD}@cluster0.mb8znck.mongodb.net/?retryWrites=true&w=majority`;
 
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);
