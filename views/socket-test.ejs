@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Socket IO Testing</h1>
+
+    <button id="btn">Click me</button>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+      // init socketio connection with localhost:8000
+
+      const socket = io('http://localhost:8000');
+
+      socket.on('connect', () => {
+        console.log('connected');
+      });
+
+      const btn = document.getElementById('btn');
+      btn.addEventListener('click', () => {
+        socket.emit('message', 'hello');
+      });
+
+      socket.on('disconnect', () => {
+        console.log('disconnected');
+      });
+    </script>
+  </body>
+</html>

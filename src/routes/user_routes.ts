@@ -1,29 +1,31 @@
 import { Router, Request, Response } from 'express';
-import { UserDocument, getUsers, getUser, deleteUser, updateUser } from '../db/models/user';
+import {
+  UserDocument,
+  getUsers,
+  getUser,
+  deleteUser,
+  updateUser,
+} from '../db/models/user';
 
 const router = Router();
 
 router.post('/user/:userName', async (req: Request, res: Response) => {
   try {
     // Create a new user document based on request data
-    const newUser = new UserDocument({
-      username: req.params.userName, // Capture 'userName' from the URL path
-      email: req.body.email, // Capture 'email' from the request body
-    });
-    
-    // Save the user document to the database
-    const savedUser = await newUser.save();
+    // const newUser = new UserDocument({
+      const userName = req.params.userName // Capture 'userName' from the URL path
+    //   email: req.body.email, // Capture 'email' from the request body
+    // });
 
+    // // Save the user document to the database
+    // const savedUser = await newUser.save();
+    res.send(`POST /user/:${userName}`);
     // Respond with the saved user data and a 201 status code (Created)
-    res.status(201).json(savedUser);
+    // res.status(201).json(savedUser);
   } catch (error) {
-
     res.status(500).json({ error: 'Failed to save user.' });
-    }
+  }
 });
-  
-
-
 
 router.get('/users', (req: Request, res: Response) => {
   /* 

@@ -46,8 +46,7 @@ router.put('/sessions/:sessionId/playpause', (req: Request, res: Response) => {
     res.send('PUT /sessions/:sessionId/playpause');
   });
   
-router.get(
-    '/sessions/:sessionId/participants',
+router.get('sessions/:sessionId/participants',
     (req: Request, res: Response) => {
       /* 
       Gets a list of participants in a session
