@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import {
+  User,
   UserDocument,
   getUsers,
   getUser,
@@ -13,15 +14,20 @@ router.post('/user/:userName', async (req: Request, res: Response) => {
   try {
     // Create a new user document based on request data
     // const newUser = new UserDocument({
-      const userName = req.params.userName // Capture 'userName' from the URL path
-    //   email: req.body.email, // Capture 'email' from the request body
+    const userName = req.params.userName // Capture 'userName' from the URL path
+    const email = req.body.email // Capture 'email' from the request body
     // });
 
     // // Save the user document to the database
-    // const savedUser = await newUser.save();
-    res.send(`POST /user/:${userName}`);
+    const newUser = new UserDocument({
+      userName: userName,
+      email: email, // Capture 'email' from the request body
+    });
+
+    const savedUser = await newUser.save();
+
     // Respond with the saved user data and a 201 status code (Created)
-    // res.status(201).json(savedUser);
+    res.status(201).json(savedUser);
   } catch (error) {
     res.status(500).json({ error: 'Failed to save user.' });
   }

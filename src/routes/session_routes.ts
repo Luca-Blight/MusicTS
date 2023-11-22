@@ -1,6 +1,6 @@
 
 import { Router, Request, Response } from 'express';
-import { SessionDocument, getSessions, createSession, joinSession,deleteSession } from '../db/models/session';
+import { SessionDocument, getSessions, joinSession,deleteSession } from '../db/models/session';
 
 
 const router = Router();

@@ -19,7 +19,6 @@ const sessionSchema = new Schema<Session>({
 });
 
 export const SessionDocument = mongoose.model<Session>('Session', sessionSchema);
-export const createSession = (name: string, creator: Types.ObjectId | User) => new SessionDocument({ name, creator }).save().then((session) => session.toObject);
 
 export const joinSession = (sessionId: string, userId: string) => SessionDocument.findOneAndUpdate({ _id: sessionId }, { $addToSet: { participants: userId } });
 export const getSessions = () => SessionDocument.find({});
