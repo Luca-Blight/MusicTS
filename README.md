@@ -1,5 +1,40 @@
 # Rythm
 
+A simple music sharing app that allows users to create a session and share music with other users in the same session.
+
+## Directory
+
+The entrypoint file is app.ts and their simple interface that can be found under the views folder
+
+`
+├── README.md
+├── package-lock.json
+├── package.json
+├── src
+│   ├── app.ts
+│   ├── controllers
+│   │   └── websock.ts
+│   ├── db
+│   │   └── models
+│   │       ├── session.ts
+│   │       └── user.ts
+│   ├── helpers
+│   ├── routes
+│   │   ├── index.ts
+│   │   ├── session_routes.ts
+│   │   └── user_routes.ts
+│   └── tests
+│       ├── session_tests.ts
+│       └── users_tests.ts
+├── tsconfig.json
+└── views
+    ├── frontend.ejs
+    ├── script.js
+    └── styles.css
+
+9 directories, 16 files
+`
+
 ## Instructions
 
 1. Add PORT=8000 & DB_PASSWORD=dev_server to .env file for mongo authentication
