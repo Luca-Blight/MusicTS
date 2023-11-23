@@ -3,8 +3,10 @@ const createSessionButton = document.getElementById('createSessionButton');
 const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
-let userName = '';
+const sessionId = '';
 let userId = '';
+let userName = '';
+let email = '';
 let socket;
 
 createSessionButton.disabled = true;
@@ -13,34 +15,44 @@ authButton.disabled = true;
 
 async function fetchSessions() {
   try {
-    const response = await axios.get('/sessions');
+    const response = await axios.get('http://localhost:8000/sessions');
+    console.log('Response:', response);
     populateDropdown(response.data);
   } catch (error) {
     console.error('Error fetching sessions:', error);
   }
 }
-function populateDropdown(sessions) {
+async function populateDropdown(sessions) {
   const dropdown = document.getElementById('sessionDropdown');
   dropdown.innerHTML = '';
   sessions.forEach((session) => {
     const option = document.createElement('option');
-    option.value = session.id;
+    option.value = session._id;
     option.textContent = session.name;
+    console.log('Session name:', session.name);
     dropdown.appendChild(option);
   });
+  console.log(document.getElementById('sessionDropdown'))
 }
 async function createSession() {
   const sessionName = document.getElementById('newSessionName').value;
-
+  console.log('Session name:', sessionName, 'User ID:', userId);
   if (sessionName && userId) {
     try {
-      const response = await axios.post('/sessions', {
-        name: sessionName,
-        host: userId,
-      });
+      const response = await axios.post(
+        'http://localhost:8000/sessions/createSession',
+        {
+          name: sessionName,
+          host: userId,
+        }
+      );
       console.log('Session created successfully:', response.data);
       document.getElementById('messageBoxContainer').style.display = 'block';
-      socket.emit('sessionCreated', { sessionId, username });
+      document.getElementById('messageBox').textContent =
+        'Session created successfully';
+      populateDropdown(response.data);
+      sessionId = response.data._id;
+      socket.emit('joinRoom', response.data._id);
     } catch (error) {
       console.error('Error creating session:', error);
     }
@@ -51,13 +63,15 @@ async function createSession() {
 
 async function joinSession() {
   const sessionId = document.getElementById('sessionDropdown').value;
-  const username = document.getElementById('username').value;
-
-  if (sessionId && username) {
+  console.log('Session ID:', sessionId, 'Username:', userId);
+  if (sessionId && userId) {
     try {
-      const response = await axios.post(`/sessions/${sessionId}/join`, {
-        username: username,
-      });
+      const response = await axios.post(
+        `http://localhost:8000/sessions/${sessionId}/join`,
+        {
+          userId: userId,
+        }
+      );
       console.log('Joined session successfully:', response.data);
       socket.emit('userJoined', { sessionId, username });
       inSession = true;
@@ -72,7 +86,7 @@ async function joinSession() {
 async function leaveSession() {
   const sessionId = document.getElementById('sessionDropdown').value;
   if (sessionId) {
-    socket.emit('leaveSession', sessionId);
+    socket.emit('leaveSession', { sessionId, userName });
     inSession = false;
   } else {
     console.error('No session selected');
@@ -97,9 +111,9 @@ async function toggleSession() {
 // Function to initialize socket connection and set up listeners
 async function socketConnect() {
   // must modify elementId for username
-  const username = document.getElementById('username').value;
-  if (username) {
-    socket = io('http://localhost:8000', { query: `username=${username}` });
+
+  if (userName) {
+    socket = io('http://localhost:8000', { query: `username=${userName}` });
 
     // Socket event handlers
     setupSocketEventHandlers();
@@ -116,16 +130,6 @@ function setupSocketEventHandlers() {
     const div = document.getElementById('messages');
     div.innerHTML = div.innerHTML + `<p>${JSON.stringify(data)}</p>`;
   });
-  socket.on('sessionUpdate', (data) => {
-    if (data.type === 'join') {
-      console.log(`User ${data.userId} joined the session`);
-    } else if (data.type === 'leave') {
-      console.log(`User ${data.userId} left the session`);
-      socket.emit('leaveSession', sessionId);
-    } else if (data.type === 'host') {
-      console.log(`User ${data.userId} is the host`);
-    }
-  });
 }
 function sendMessage() {
   const message = document.getElementById('messageInput').value;
@@ -134,27 +138,27 @@ function sendMessage() {
     document.getElementById('messageInput').value = '';
   }
 }
+async function signUpIn(event) {
+  event.preventDefault();
 
-// socket.on('chatMessage', (data) => {
-//   const div = document.getElementById('messages');
-//   div.innerHTML += `<p>${data}</p>`;
-// });
-async function signUpIn() {
-  const username = document.getElementById('authUserName').value;
-  const email = document.getElementById('authEmail').value;
+  const authUserName = document.getElementById('authUserName').value;
+  const authEmail = document.getElementById('authEmail').value;
 
-  if (username && email) {
+  if (authUserName && authEmail) {
     try {
-      const response = await axios.post('/users', {
-        name: username,
-        email: email,
-      });
+      const response = await axios.post(
+        'http://localhost:8000/users/' + authUserName,
+        { email: authEmail }
+      );
       console.log('Signed in successfully:', response.data);
 
+      document.getElementById('signInStatus').textContent =
+        'User signed in successfully';
+      console.log('Signed in successfully:', response.data);
       // Update userName and userId here
       userName = response.data.userName;
       userId = response.data.userId;
-
+      console.log('Updated userName:', userName, userId);
       if (userId || userName) {
         fetchSessions(); // Fetch sessions if user is signed in
       }
@@ -188,6 +192,7 @@ function checkInputValues() {
 document.addEventListener('DOMContentLoaded', () => {
   updateButtonLabel();
   updateSessionCreationMessage();
+  fetchSessions();
 });
 
 authUserNameInput.addEventListener('input', checkInputValues);

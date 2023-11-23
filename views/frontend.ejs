@@ -23,8 +23,8 @@
       placeholder="Enter a session name" />
     <hr />
     <button
-      id="sessionToggle"
-      onClick="toggleSession()">
+      id="joinSession"
+      onClick="joinSession()">
       Join a Session
     </button>
     <select id="sessionDropdown">
@@ -51,10 +51,12 @@
         placeholder="Enter email" />
       <button
         type="submit"
-        id="authButton">
+        id="authButton"
+        onClick="signUpIn(event)">
         Sign Up/Sign-in
       </button>
     </form>
+    <p id="signInStatus"></p>
     <p id="sessionCreationMessage">
       <script>
         document.getElementById('sessionCreationMessage').innerText =

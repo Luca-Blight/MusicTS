@@ -10,27 +10,34 @@ import {
 
 const router = Router();
 
-router.post('/user/:userName', async (req: Request, res: Response) => {
+router.post('/:userName', async (req: Request, res: Response) => {
   try {
     // Create a new user document based on request data
     // const newUser = new UserDocument({
-    const userName = req.params.userName // Capture 'userName' from the URL path
-    const email = req.body.email // Capture 'email' from the request body
-    const existingUser = await UserDocument.findOne({ userName });
+    const userName = req.params.userName; // Capture 'userName' from the URL path
+    const email = req.body.email; // Capture 'email' from the request body
+    console.log('Username:', userName, 'Email:', email); // Check if email is received correctly
+    const existingUser = await UserDocument.findOne({ email });
 
     if (existingUser) {
-
-      // normally this would be an error handler but has been altered this way to simplify creating a user
-      return res.status(200).send('Username already exists');
+      // Return the existing user's id and userName
+      return res.status(200).json({
+        userId: existingUser._id,
+        userName: existingUser.userName,
+      });
+    } else {
+      const newUser = new UserDocument({
+        userName,
+        email,
+      });
+      const savedUser = await newUser.save();
+      return res.status(200).json({
+        userId: savedUser._id,
+        userName: savedUser.userName,
+      });
     }
-    const newUser = new UserDocument({
-      userName: userName,
-      email: email, 
-    });
-  
-    const savedUser = await newUser.save();
-    res.status(201).send(savedUser);
   } catch (error) {
+    console.error(error);
     res.status(500).send('Error creating user');
   }
 });

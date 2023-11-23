@@ -18,12 +18,13 @@ const app: Express = express();
 // Middleware configuration
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: '*',
     credentials: true,
   })
 );
 app.use(compression());
 app.use(cookieParser());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // MongoDB configuration
 const MONGO_URL = `mongodb+srv://rythm:${process.env.DB_PASSWORD}@cluster0.mb8znck.mongodb.net/?retryWrites=true&w=majority`;
@@ -45,6 +46,11 @@ const io = new Server(server);
 io.on('connection', (socket) => {
   console.log(`Socket ${socket.id} connected`);
   const username = socket.handshake.query.username;
+
+  socket.on('joinSession', (sessionId) => {
+    socket.join(sessionId);
+    // You can emit an event here to notify the room or perform other actions
+  });
 
   socket.on('userJoined', ({ sessionId, username }) => {
     // Join the socket to a specific room based on sessionId

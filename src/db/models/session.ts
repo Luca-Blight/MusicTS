@@ -21,7 +21,7 @@ const sessionSchema = new Schema<Session>({
 export const SessionDocument = mongoose.model<Session>('Session', sessionSchema);
 
 export const joinSession = (sessionId: string, userId: string) => SessionDocument.findOneAndUpdate({ _id: sessionId }, { $addToSet: { participants: userId } });
-export const getSessions = () => SessionDocument.find({});
+export const getAllSessions = () => SessionDocument.find({}).select('_id name');
 export const deleteSession = (id: string) => SessionDocument.findOneAndDelete({ _id: id });
 export const updateSession = (id: string, values: Record<string, any>) => SessionDocument.findOneAndUpdate({ _id: id }, values)
 export const leaveSession = (sessionId: string, userId: string) => 

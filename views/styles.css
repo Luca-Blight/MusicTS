@@ -26,3 +26,10 @@
 #signupForm input {
   margin: 5px;
 }
+
+#sessionDropDown {
+  width: 200px;
+  height: 40px;
+  font-size: 16px;
+  padding: 5px;
+}
