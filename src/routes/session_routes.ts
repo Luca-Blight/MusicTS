@@ -1,7 +1,7 @@
 
 import { Router, Request, Response } from 'express';
-import { SessionDocument, getSessions, joinSession,deleteSession } from '../db/models/session';
-
+import { SessionDocument, getSessions, joinSession,deleteSession, leaveSession } from '../db/models/session';
+import { io } from '../app';
 
 const router = Router();
 
@@ -14,28 +14,36 @@ router.post('/sessions', (req: Request, res: Response) => {
       @throws {Error} - If the session already exists, check by id
     
     */
+    
+
     res.send('POST /sessions');
   });
   
-router.put('/sessions/:sessionId/join', (req: Request, res: Response) => {
-    /* 
-    
-      Join a session, adds the user to the session, increases the number of participants in the session if the session is not full
-      @param {string} sessionId - ID of the session to join
-      @throws {Error} - If the session is full
-      @throws {Error} - If the session does not exist
-    */
-    res.send('POST /sessions/:sessionId/join');
-  });
+  router.put('/sessions/:sessionId/join', async (req: Request, res: Response) => {
+    try {
+        const sessionId = req.params.sessionId;
+        const userId = req.body.userId; // assuming userId is passed in body
+        await joinSession(sessionId, userId);
+        io.to(sessionId).emit('sessionUpdate', { type: 'join', userId });
+        res.send('Joined session');
+    } catch (error) {
+        const errorMessage = (error as Error).message;
+        res.status(500).send(errorMessage);
+    }
+});
   
-router.put('/sessions/:sessionId/leave', (req: Request, res: Response) => {
-    /* 
-      Leaves a session, removes the user from the session, decreases the number of participants in the session
-      @param {string} sessionId - ID of the session to join
-      @throws {Error} - if the session does not exist
-     */
-    res.send('POST /sessions/:sessionId/leave');
-  });
+router.put('/sessions/:sessionId/leave', async (req: Request, res: Response) => {
+  try {
+      const sessionId = req.params.sessionId;
+      const userId = req.body.userId; // assuming userId is passed in body
+      await leaveSession(sessionId, userId);
+      io.to(sessionId).emit('sessionUpdate', { type: 'leave', userId });
+      res.send('Left session');
+  } catch (error) {
+      const errorMessage = (error as Error).message;
+      res.status(500).send(errorMessage);
+  }
+});
   
 router.put('/sessions/:sessionId/playpause', (req: Request, res: Response) => {
     /* 

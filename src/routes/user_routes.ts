@@ -16,20 +16,22 @@ router.post('/user/:userName', async (req: Request, res: Response) => {
     // const newUser = new UserDocument({
     const userName = req.params.userName // Capture 'userName' from the URL path
     const email = req.body.email // Capture 'email' from the request body
-    // });
+    const existingUser = await UserDocument.findOne({ userName });
 
-    // // Save the user document to the database
+    if (existingUser) {
+
+      // normally this would be an error handler but has been altered this way to simplify creating a user
+      return res.status(200).send('Username already exists');
+    }
     const newUser = new UserDocument({
       userName: userName,
-      email: email, // Capture 'email' from the request body
+      email: email, 
     });
-
+  
     const savedUser = await newUser.save();
-
-    // Respond with the saved user data and a 201 status code (Created)
-    res.status(201).json(savedUser);
+    res.status(201).send(savedUser);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to save user.' });
+    res.status(500).send('Error creating user');
   }
 });
 

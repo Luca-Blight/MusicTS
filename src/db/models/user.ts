@@ -15,7 +15,7 @@ const userSchema = new Schema<User>({
 
 });
 
-export const UserDocument = mongoose.model<User>('User', userSchema);
+export const UserDocument = mongoose.model<User>('User', userSchema, 'users');
 
 export const getUsers = () => UserDocument.find({});
 export const getUser = (email: string) => UserDocument.findOne({ email });

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../app'; // Import your Express app
+import { app } from '../app'; // Import your Express app
 import { UserDocument } from '../db/models/user'; // Import your User model
 
 describe('User Routes', () => {
@@ -8,13 +8,13 @@ describe('User Routes', () => {
     await UserDocument.deleteMany({});
   });
 
-  test('GET /api/users should return an empty array when no users exist', async () => {
+  test('GET /users should return an empty array when no users exist', async () => {
     const response = await request(app).get('/users');
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
   });
 
-  test('POST /api/users should create a new user', async () => {
+  test('POST /users should create a new user', async () => {
     const userData = { username: 'TestUser', email: 'test@example.com' };
     const response = await request(app).post('/users').send(userData);
     expect(response.status).toBe(201);

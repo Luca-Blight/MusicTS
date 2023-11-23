@@ -4,43 +4,14 @@
 
 # Instructions
 
-
-# To start backend server
-`npm run dev`
-
-
-# Backend API
+1. `npm install && npm run server`
+2. make a request to http://localhost:8000/. This will render a simple frontend to work with
+3. Sign-up/Sign-in to the website, afterwards you'll be able to create or join/leave a session
 
 
 # Database Schema
 
 
-
-
-# NoSQL database
-
-## Session
-```json
-{
-    "id": "session_id",
-    "name": "session_name",
-    "host": "host_id",
-    "participants": [
-        "participant_id_1",
-        "participant_id_2",
-        "participant_id_3"
-    ],
-    "playlist": [
-        "song_id_1",
-        "song_id_2",
-        "song_id_3"
-    ],
-    "current_song": "song_id_1",
-    "is_playing": true,
-    "created_at": "2021-01-01T00:00:00.000Z",
-    "updated_at": "2021-01-01T00:00:00.000Z"
-}
-```
 
 
 # Checklist
@@ -58,3 +29,14 @@
     - [ ] `/users/:userId` - GET - Get user details
     - [ ] `/users/:userId` - PUT - Update user
     - [ ] `/users/:userId` - DELETE - Delete user
+
+
+# Areas of improvemeent
+
+updated_at to session and user schema
+host has ability to create a playlist
+host can eject people from the room
+host can mute people
+host can skip songs
+user authentication
+split log-in/sign-in up

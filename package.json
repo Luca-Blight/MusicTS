@@ -25,7 +25,7 @@
   "dependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.9.0",
-    "body-parser": "^1.20.2",
+    "axios": "^1.6.2",
     "compression": "^1.7.4",
     "concurrently": "^8.2.2",
     "cookie-parser": "^1.4.6",

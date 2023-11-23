@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Rythm</title>
+    <link
+      rel="stylesheet"
+      href="styles.css" />
+  </head>
+  <body>
+    <h1>Rythm</h1>
+    <button
+      onClick="createSession()"
+      id="createSessionButton">
+      Create Session
+    </button>
+    <input
+      type="text"
+      id="newSessionName"
+      placeholder="Enter a session name" />
+    <hr />
+    <button
+      id="sessionToggle"
+      onClick="toggleSession()">
+      Join a Session
+    </button>
+    <select id="sessionDropdown">
+      <option value="">Select a Session</option>
+    </select>
+    <div id="messageBoxContainer">
+      <div
+        style="width: 100vw"
+        id="messages"></div>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type a message" />
+      <button onClick="sendMessage()">Send Message</button>
+    </div>
+    <form id="signupForm">
+      <input
+        type="text"
+        id="authUserName"
+        placeholder="Enter Username" />
+      <input
+        type="text"
+        id="authEmail"
+        placeholder="Enter email" />
+      <button
+        type="submit"
+        id="authButton">
+        Sign Up/Sign-in
+      </button>
+    </form>
+    <p id="sessionCreationMessage">
+      <script>
+        document.getElementById('sessionCreationMessage').innerText =
+          createSessionButton.disabled
+            ? 'Session creation is disabled while you are not logged in. Please sign up or sign in to create a session.'
+            : 'Session creation is enabled.';
+      </script>
+    </p>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
