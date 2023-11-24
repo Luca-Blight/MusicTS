@@ -1,22 +1,20 @@
-const inSession = false;
 const createSessionButton = document.getElementById('createSessionButton');
 const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
-const sessionId = '';
+let inSession = false;
+let sessionId = '';
 let userId = '';
 let userName = '';
 let email = '';
 let socket;
 
 createSessionButton.disabled = true;
-// make modification so that sign up and sign in are disable until username and email is provided
 authButton.disabled = true;
 
 async function fetchSessions() {
   try {
     const response = await axios.get('http://localhost:8000/sessions');
-    console.log('Response:', response);
     populateDropdown(response.data);
   } catch (error) {
     console.error('Error fetching sessions:', error);
@@ -29,11 +27,10 @@ async function populateDropdown(sessions) {
     const option = document.createElement('option');
     option.value = session._id;
     option.textContent = session.name;
-    console.log('Session name:', session.name);
     dropdown.appendChild(option);
   });
-  console.log(document.getElementById('sessionDropdown'))
 }
+
 async function createSession() {
   const sessionName = document.getElementById('newSessionName').value;
   console.log('Session name:', sessionName, 'User ID:', userId);
@@ -46,13 +43,9 @@ async function createSession() {
           host: userId,
         }
       );
-      console.log('Session created successfully:', response.data);
-      document.getElementById('messageBoxContainer').style.display = 'block';
-      document.getElementById('messageBox').textContent =
-        'Session created successfully';
-      populateDropdown(response.data);
       sessionId = response.data._id;
-      socket.emit('joinRoom', response.data._id);
+      socket.emit('joinRoom', sessionId);
+      fetchSessions();
     } catch (error) {
       console.error('Error creating session:', error);
     }
@@ -62,19 +55,15 @@ async function createSession() {
 }
 
 async function joinSession() {
-  const sessionId = document.getElementById('sessionDropdown').value;
-  console.log('Session ID:', sessionId, 'Username:', userId);
-  if (sessionId && userId) {
+  if (sessionId && userId) { // Use 'sessionId' instead of 'selectedSessionId'
     try {
-      const response = await axios.post(
-        `http://localhost:8000/sessions/${sessionId}/join`,
-        {
-          userId: userId,
-        }
-      );
+      const response = await axios.post(`http://localhost:8000/sessions/${sessionId}/join`, {
+        userId: userId,
+      });
       console.log('Joined session successfully:', response.data);
-      socket.emit('userJoined', { sessionId, username });
+      socket.emit('userJoined', { sessionId, username: userId }); // Ensure 'userId' is the correct variable to use for username
       inSession = true;
+      updateButtonLabel();
     } catch (error) {
       console.error('Error joining session:', error);
     }
@@ -84,22 +73,21 @@ async function joinSession() {
 }
 
 async function leaveSession() {
-  const sessionId = document.getElementById('sessionDropdown').value;
   if (sessionId) {
     socket.emit('leaveSession', { sessionId, userName });
     inSession = false;
+    updateButtonLabel();
   } else {
     console.error('No session selected');
   }
 }
 function updateButtonLabel() {
   const sessionButton = document.getElementById('sessionToggle');
-  if (inSession) {
-    sessionButton.textContent = 'Leave Session';
-  } else {
-    sessionButton.textContent = 'Join Session';
+  if (sessionButton) { // Check if the element exists
+    sessionButton.textContent = inSession ? 'Leave Session' : 'Join Session';
   }
 }
+
 async function toggleSession() {
   if (inSession) {
     await leaveSession();
@@ -110,18 +98,12 @@ async function toggleSession() {
 }
 // Function to initialize socket connection and set up listeners
 async function socketConnect() {
-  // must modify elementId for username
-
   if (userName) {
     socket = io('http://localhost:8000', { query: `username=${userName}` });
-
-    // Socket event handlers
     setupSocketEventHandlers();
-
-    const btn = document.getElementById('btn');
-    btn.addEventListener('click', () => socket.emit('message', 'hello'));
   }
 }
+
 function setupSocketEventHandlers() {
   socket.on('connect', () => console.log('connected'));
   socket.on('disconnect', () => console.log('disconnected'));
@@ -191,7 +173,6 @@ function checkInputValues() {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateButtonLabel();
-  updateSessionCreationMessage();
   fetchSessions();
 });
 
