@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 const router = Router();
 
-// Import user and session routes
 import usersRouter from './user_routes';
 import sessionsRouter from './session_routes';
 

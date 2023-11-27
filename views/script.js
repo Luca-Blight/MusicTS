@@ -2,8 +2,8 @@ const createSessionButton = document.getElementById('createSessionButton');
 const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
+
 let inSession = false;
-let sessionId = '';
 let userId = '';
 let userName = '';
 let email = '';
@@ -33,7 +33,6 @@ async function populateDropdown(sessions) {
 
 async function createSession() {
   const sessionName = document.getElementById('newSessionName').value;
-  console.log('Session name:', sessionName, 'User ID:', userId);
   if (sessionName && userId) {
     try {
       const response = await axios.post(
@@ -44,8 +43,9 @@ async function createSession() {
         }
       );
       sessionId = response.data._id;
-      socket.emit('joinRoom', sessionId);
+      socket.emit('joinSession', { sessionId, userName });
       fetchSessions();
+      document.getElementById('newSessionName').value = ''; // Clear input after successful creation
     } catch (error) {
       console.error('Error creating session:', error);
     }
@@ -55,13 +55,15 @@ async function createSession() {
 }
 
 async function joinSession() {
-  if (sessionId && userId) { // Use 'sessionId' instead of 'selectedSessionId'
+  let sessionId = document.getElementById('sessionDropdown').value;
+  console.log('Joining session:', sessionId, 'User ID:', userId);
+  if (sessionId && userId) {
     try {
-      const response = await axios.post(`http://localhost:8000/sessions/${sessionId}/join`, {
+      await axios.put(`http://localhost:8000/sessions/${sessionId}/join`, {
         userId: userId,
+        userName: userName,
       });
-      console.log('Joined session successfully:', response.data);
-      socket.emit('userJoined', { sessionId, username: userId }); // Ensure 'userId' is the correct variable to use for username
+      socket.emit('joinSession', { sessionId, userName });
       inSession = true;
       updateButtonLabel();
     } catch (error) {
@@ -73,7 +75,12 @@ async function joinSession() {
 }
 
 async function leaveSession() {
+  let sessionId = document.getElementById('sessionDropdown').value;
   if (sessionId) {
+    await axios.put(`http://localhost:8000/sessions/${sessionId}/leave`, {
+      userId: userId,
+      userName: userName,
+    });
     socket.emit('leaveSession', { sessionId, userName });
     inSession = false;
     updateButtonLabel();
@@ -83,7 +90,7 @@ async function leaveSession() {
 }
 function updateButtonLabel() {
   const sessionButton = document.getElementById('sessionToggle');
-  if (sessionButton) { // Check if the element exists
+  if (sessionButton) {
     sessionButton.textContent = inSession ? 'Leave Session' : 'Join Session';
   }
 }
@@ -96,9 +103,9 @@ async function toggleSession() {
   }
   updateButtonLabel();
 }
-// Function to initialize socket connection and set up listeners
+
 async function socketConnect() {
-  if (userName) {
+  if (userName && !socket) {
     socket = io('http://localhost:8000', { query: `username=${userName}` });
     setupSocketEventHandlers();
   }
@@ -110,7 +117,7 @@ function setupSocketEventHandlers() {
   socket.on('message', (data) => {
     console.log(data);
     const div = document.getElementById('messages');
-    div.innerHTML = div.innerHTML + `<p>${JSON.stringify(data)}</p>`;
+    div.innerHTML += `<p>${message}</p>`; // Append the message to the messages div
   });
 }
 function sendMessage() {

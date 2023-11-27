@@ -3,7 +3,6 @@ import {
   SessionDocument,
   getAllSessions,
   joinSession,
-  deleteSession,
   leaveSession,
 } from '../db/models/session';
 import { io } from '../app';
@@ -29,10 +28,12 @@ router.post('/createSession', async (req: Request, res: Response) => {
 router.put('/:sessionId/join', async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId;
-    const userId = req.body.userId; // assuming userId is passed in body
+    const userId = req.body.userId;
+    const userName = req.body.userName;
+
     console.log(`sessionId: ${sessionId}, userId: ${userId}`);
     await joinSession(sessionId, userId);
-    io.to(sessionId).emit('sessionUpdate', { type: 'join', userId });
+    io.to(sessionId).emit('sessionJoin', { sessionId, userName });
     res.send('Joined session');
   } catch (error) {
     const errorMessage = (error as Error).message;
@@ -43,10 +44,11 @@ router.put('/:sessionId/join', async (req: Request, res: Response) => {
 router.put('/:sessionId/leave', async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId;
-    const userId = req.body.userId; // assuming userId is passed in body
+    const userId = req.body.userId;
+    const userName = req.body.userName;
+
     await leaveSession(sessionId, userId);
-    io.to(sessionId).emit('sessionUpdate', { type: 'leave', userId });
-    res.send('Left session');
+    io.to(sessionId).emit('sessionLeave', { sessionId, userName });
   } catch (error) {
     const errorMessage = (error as Error).message;
     res.status(500).send(errorMessage);
@@ -56,7 +58,6 @@ router.put('/:sessionId/leave', async (req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const sessions = await getAllSessions();
-    console.log('sessions', sessions);
     res.status(200).send(sessions);
   } catch (error) {
     const errorMessage = (error as Error).message;
@@ -71,15 +72,6 @@ router.put('/:sessionId/playpause', (req: Request, res: Response) => {
       @throws {Error} - If the session is already playing or paused
      */
   res.send('PUT /:sessionId/playpause');
-});
-
-router.get('/:sessionId/participants', (req: Request, res: Response) => {
-  /* 
-      Gets a list of participants in a session
-      @param {string} sessionId - ID of the session to get details from
-      @throws {Error} - If the session is already playing or paused
-     */
-  res.send('GET /sessions/:sessionId/participants');
 });
 
 export default router;

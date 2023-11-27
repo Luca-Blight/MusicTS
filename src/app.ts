@@ -45,34 +45,22 @@ const io = new Server(server);
 
 io.on('connection', (socket) => {
   console.log(`Socket ${socket.id} connected`);
-  const username = socket.handshake.query.username;
 
-  socket.on('joinSession', (sessionId) => {
+  socket.on('joinSession', (sessionId, user) => {
+    console.log(`user ${user} joined session ${sessionId}`);
     socket.join(sessionId);
-    // You can emit an event here to notify the room or perform other actions
+    io.to(sessionId).emit('joinSession', `${user} has joined the channel`);
   });
 
-  socket.on('userJoined', ({ sessionId, username }) => {
-    // Join the socket to a specific room based on sessionId
-
-    socket.join(sessionId);
-    socket
-      .to(sessionId)
-      .emit('userJoined', `${username} has joined the session`);
-  });
-
-  socket.on('leaveLeft', (sessionId) => {
+  socket.on('leaveSession', (sessionId, user) => {
+    console.log(`User ${user} left session ${sessionId}`);
+    io.to(sessionId).emit('leaveSession', `${user} has left the session`);
     socket.leave(sessionId);
-    socket.to(sessionId).emit('userLeft', `${username} has joined the session`);
   });
 
-  socket.on('message', (data) => {
-    console.log(`Received message: ${data}`);
+  socket.on('message', (sessionId, user, message) => {
+    io.to(sessionId).emit('message', `${user} said: ${message}`);
   });
-  setTimeout(
-    () => socket.broadcast.emit('message', `${username} is connected`),
-    200
-  );
 });
 
 server.listen(PORT, () => {
