@@ -4,6 +4,7 @@ import {
   getAllSessions,
   joinSession,
   leaveSession,
+  playMusic,
 } from '../db/models/session';
 import { io } from '../app';
 
@@ -65,13 +66,21 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-router.put('/:sessionId/playpause', (req: Request, res: Response) => {
+router.put('/:sessionId/playMusic', async (req: Request, res: Response) => {
   /* 
       Plays or pauses a session based on the current play/pause state of the session
       @param {string} sessionId - ID of the session to join
       @throws {Error} - If the session is already playing or paused
      */
-  res.send('PUT /:sessionId/playpause');
+  const sessionId = req.params.sessionId;
+  const playState = req.body.playState;
+  try {
+    await playMusic(sessionId, playState);
+    io.to(sessionId).emit('playMusic', playState);
+  } catch (err) {
+    const errorMessage = (err as Error).message;
+    res.status(500).send(errorMessage);
+  }
 });
 
 export default router;

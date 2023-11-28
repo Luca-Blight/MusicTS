@@ -51,36 +51,35 @@ io.on('connection', (socket) => {
   socket.on('joinSession', (sessionId, user) => {
     console.log(`User ${user} joined session ${sessionId}`);
     socket.join(sessionId);
-    socket.broadcast
-      .to(sessionId)
-      .emit('joinSession', `${user} has joined the channel`);
+    io.in(sessionId).emit('joinSession', `${user} has joined the channel`);
   });
 
   socket.on('leaveSession', (sessionId, user) => {
     console.log(`User ${user} left session ${sessionId}`);
-    socket.broadcast
-      .to(sessionId)
-      .emit('leaveSession', `${user} has left the channel`);
+    io.in(sessionId).emit('leaveSession', `${user} has left the channel`);
     socket.leave(sessionId);
   });
 
-  // Listening for a message event
+  socket.on('playMusic', (sessionId, playState) => {
+    let playStateString = playState
+      ? 'The music is playing'
+      : 'The music has been paused';
+    io.in(sessionId).emit('playMusic', playStateString);
+  });
+
   socket.on('message', (data) => {
     if (data.sessionId && data.user && data.message) {
-      // Broadcast message to everyone in the room including the sender
       io.in(data.sessionId).emit('message', data);
     } else {
       console.log('Message data is missing sessionId or user');
     }
   });
   socket.on('disconnect', () => {
-    // add get user function, then use that to emit a message to all users
-
+    // create function to determine user val
     console.log(`Socket ${socket.id} disconnected`);
     socket.broadcast.emit('message', 'user disconnected from the channel');
   });
 });
-//W
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

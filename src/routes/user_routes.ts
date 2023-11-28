@@ -12,15 +12,12 @@ const router = Router();
 
 router.post('/:userName', async (req: Request, res: Response) => {
   try {
-    // Create a new user document based on request data
-    // const newUser = new UserDocument({
-    const userName = req.params.userName; // Capture 'userName' from the URL path
-    const email = req.body.email; // Capture 'email' from the request body
-    console.log('Username:', userName, 'Email:', email); // Check if email is received correctly
+    const userName = req.params.userName;
+    const email = req.body.email;
+    console.log('Username:', userName, 'Email:', email);
     const existingUser = await UserDocument.findOne({ email });
 
     if (existingUser) {
-      // Return the existing user's id and userName
       return res.status(200).json({
         userId: existingUser._id,
         userName: existingUser.userName,

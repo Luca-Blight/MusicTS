@@ -5,6 +5,7 @@ const authEmailInput = document.getElementById('authEmail');
 let message = document.getElementById('messageInput').value;
 
 let inSession = false;
+let playState = false;
 let userId = '';
 let userName = '';
 let email = '';
@@ -47,7 +48,7 @@ async function createSession() {
       sessionId = response.data._id;
       socket.emit('joinSession', sessionId, userName);
       fetchSessions();
-      document.getElementById('newSessionName').value = ''; // Clear input after successful creation
+      document.getElementById('newSessionName').value = '';
       document.getElementById('chatBox').style.display = 'block';
     } catch (error) {
       console.error('Error creating session:', error);
@@ -81,6 +82,7 @@ async function joinSession() {
       sessionId = selectedSessionId;
       inSession = true;
       document.getElementById('chatBox').style.display = 'block';
+      document.getElementById('playMusicButton').style.display = 'block';
       updateButtonLabel();
     } catch (error) {
       console.error('Error joining session:', error);
@@ -108,12 +110,36 @@ async function leaveSession() {
     socket.emit('leaveSession', leaveSessionId, userName);
     sessionId = '';
     inSession = false;
+    document.getElementById('playMusicButton').style.display = 'none';
     document.getElementById('chatBox').style.display = 'none';
     updateButtonLabel();
   } else {
     console.error('No session selected');
   }
 }
+
+async function playMusic() {
+  playState = !playState;
+  try {
+    const response = await axios.put(
+      `http://localhost:8000/sessions/${sessionId}/playMusic`,
+      { playState: playState }
+    );
+    socket.emit('playMusic', sessionId, playState);
+    console.log('Play/Pause response:', response);
+    updatePlayMusicButtonLabel();
+  } catch (error) {
+    console.error('Error playing/pausing music:', error);
+  }
+}
+
+function updatePlayMusicButtonLabel() {
+  const playMusicButton = document.getElementById('playMusicButton');
+  if (playMusicButton) {
+    playMusicButton.textContent = playState ? 'Stop Music' : 'Play Music';
+  }
+}
+
 function updateButtonLabel() {
   const sessionButton = document.getElementById('sessionToggle');
   if (sessionButton) {
@@ -130,6 +156,14 @@ async function toggleSession() {
   updateButtonLabel();
 }
 
+async function togglePlayPause() {
+  if (inSession) {
+    await stopMusic();
+  } else {
+    await playMusic();
+  }
+  updatePlayPauseLabel();
+}
 async function socketConnect() {
   if (userName && !socket) {
     socket = io('http://localhost:8000', { query: `username=${userName}` });
@@ -140,6 +174,7 @@ async function socketConnect() {
 function setupSocketEventHandlers() {
   socket.on('connect', () => console.log('connected'));
   socket.on('disconnect', () => console.log('disconnected'));
+  socket.on('playMusic', () => console.log('music state has changed'));
   socket.on('message', (data) => {
     const messagesDiv = document.getElementById('messages');
 
@@ -229,6 +264,7 @@ function checkInputValues() {
 document.addEventListener('DOMContentLoaded', () => {
   updateButtonLabel();
   fetchSessions();
+  document.getElementById('playMusicButton').style.display = 'none'; // Hide the button initially
 });
 
 authUserNameInput.addEventListener('input', checkInputValues);
