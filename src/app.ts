@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
   socket.on('message', (data) => {
     if (data.sessionId && data.user && data.message) {
       // Broadcast message to everyone in the room including the sender
-      socket.broadcast.in(data.sessionId).emit('message', data);
+      io.in(data.sessionId).emit('message', data);
     } else {
       console.log('Message data is missing sessionId or user');
     }
