@@ -57,8 +57,15 @@ host can mute people
 host can skip songs
 user authentication
 split log-in/sign-in up
+rooms list
+If user join another room the user may be forced to to leave the room they are in.
+If host leaves the room, someone else is randomly selected to be the new host with admin permissions.
 
 ## To Do
 
 Bugs to fix:
     from step 5 onwards
+
+
+
+

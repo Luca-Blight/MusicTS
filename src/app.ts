@@ -37,31 +37,50 @@ app.use(express.static('views'));
 app.use('/', routes);
 app.set('view engine', 'ejs');
 app.get('/', (req, res) => {
-  res.render('frontend'); // Render frontend.ejs when "/" is accessed
+  res.render('frontend');
 });
-const server = http.createServer(app);
 
+const server = http.createServer(app);
 const io = new Server(server);
 
 io.on('connection', (socket) => {
   console.log(`Socket ${socket.id} connected`);
 
+  socket.emit('message', { message: 'Welcome to the Rythm!' });
+
   socket.on('joinSession', (sessionId, user) => {
-    console.log(`user ${user} joined session ${sessionId}`);
+    console.log(`User ${user} joined session ${sessionId}`);
     socket.join(sessionId);
-    io.to(sessionId).emit('joinSession', `${user} has joined the channel`);
+    socket.broadcast
+      .to(sessionId)
+      .emit('joinSession', `${user} has joined the channel`);
   });
 
   socket.on('leaveSession', (sessionId, user) => {
     console.log(`User ${user} left session ${sessionId}`);
-    io.to(sessionId).emit('leaveSession', `${user} has left the session`);
+    socket.broadcast
+      .to(sessionId)
+      .emit('leaveSession', `${user} has left the channel`);
     socket.leave(sessionId);
   });
 
-  socket.on('message', (sessionId, user, message) => {
-    io.to(sessionId).emit('message', `${user} said: ${message}`);
+  // Listening for a message event
+  socket.on('message', (data) => {
+    if (data.sessionId && data.user && data.message) {
+      // Broadcast message to everyone in the room including the sender
+      socket.broadcast.in(data.sessionId).emit('message', data);
+    } else {
+      console.log('Message data is missing sessionId or user');
+    }
+  });
+  socket.on('disconnect', () => {
+    // add get user function, then use that to emit a message to all users
+
+    console.log(`Socket ${socket.id} disconnected`);
+    socket.broadcast.emit('message', 'user disconnected from the channel');
   });
 });
+//W
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

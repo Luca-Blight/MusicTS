@@ -17,6 +17,7 @@ router.post('/createSession', async (req: Request, res: Response) => {
   try {
     const session = new SessionDocument({ name: sessionName, host: hostName });
     const savedSession = await session.save();
+    console.log(`savedSession: ${JSON.stringify(savedSession)}`);
     res.status(201).send(savedSession);
     io.to(savedSession._id).emit('joinSession', savedSession._id);
   } catch (err) {
@@ -31,9 +32,8 @@ router.put('/:sessionId/join', async (req: Request, res: Response) => {
     const userId = req.body.userId;
     const userName = req.body.userName;
 
-    console.log(`sessionId: ${sessionId}, userId: ${userId}`);
     await joinSession(sessionId, userId);
-    io.to(sessionId).emit('sessionJoin', { sessionId, userName });
+    io.to(sessionId).emit('joinSession', { sessionId, userName });
     res.send('Joined session');
   } catch (error) {
     const errorMessage = (error as Error).message;
@@ -48,7 +48,7 @@ router.put('/:sessionId/leave', async (req: Request, res: Response) => {
     const userName = req.body.userName;
 
     await leaveSession(sessionId, userId);
-    io.to(sessionId).emit('sessionLeave', { sessionId, userName });
+    io.to(sessionId).emit('leaveSession', { sessionId, userName });
   } catch (error) {
     const errorMessage = (error as Error).message;
     res.status(500).send(errorMessage);

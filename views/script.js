@@ -3,10 +3,12 @@ const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
 
+let message = document.getElementById('messageInput').value;
 let inSession = false;
 let userId = '';
 let userName = '';
 let email = '';
+let sessionId = '';
 let socket;
 
 createSessionButton.disabled = true;
@@ -33,7 +35,7 @@ async function populateDropdown(sessions) {
 
 async function createSession() {
   const sessionName = document.getElementById('newSessionName').value;
-  if (sessionName && userId) {
+  if (sessionName && userId && userName) {
     try {
       const response = await axios.post(
         'http://localhost:8000/sessions/createSession',
@@ -43,9 +45,10 @@ async function createSession() {
         }
       );
       sessionId = response.data._id;
-      socket.emit('joinSession', { sessionId, userName });
+      socket.emit('joinSession', sessionId, userName);
       fetchSessions();
       document.getElementById('newSessionName').value = ''; // Clear input after successful creation
+      document.getElementById('chatBox').style.display = 'block';
     } catch (error) {
       console.error('Error creating session:', error);
     }
@@ -55,16 +58,29 @@ async function createSession() {
 }
 
 async function joinSession() {
-  let sessionId = document.getElementById('sessionDropdown').value;
-  console.log('Joining session:', sessionId, 'User ID:', userId);
-  if (sessionId && userId) {
+  let selectedSessionId = document.getElementById('sessionDropdown').value;
+  console.log('Session selected:', selectedSessionId);
+  console.log(
+    'Joining session:',
+    selectedSessionId,
+    'User ID:',
+    userId,
+    'Username:',
+    userName
+  );
+  if (selectedSessionId && userId && userName) {
     try {
-      await axios.put(`http://localhost:8000/sessions/${sessionId}/join`, {
-        userId: userId,
-        userName: userName,
-      });
-      socket.emit('joinSession', { sessionId, userName });
+      await axios.put(
+        `http://localhost:8000/sessions/${selectedSessionId}/join`,
+        {
+          userId: userId,
+          userName: userName,
+        }
+      );
+      socket.emit('joinSession', selectedSessionId, userName);
+      sessionId = selectedSessionId;
       inSession = true;
+      document.getElementById('chatBox').style.display = 'block';
       updateButtonLabel();
     } catch (error) {
       console.error('Error joining session:', error);
@@ -75,14 +91,24 @@ async function joinSession() {
 }
 
 async function leaveSession() {
-  let sessionId = document.getElementById('sessionDropdown').value;
-  if (sessionId) {
-    await axios.put(`http://localhost:8000/sessions/${sessionId}/leave`, {
+  let leaveSessionId = sessionId;
+  console.log(
+    'Leaving session:',
+    sessionId,
+    'User ID:',
+    userId,
+    'Username:',
+    userName
+  );
+  if (leaveSessionId && userId && userName) {
+    await axios.put(`http://localhost:8000/sessions/${leaveSessionId}/leave`, {
       userId: userId,
       userName: userName,
     });
-    socket.emit('leaveSession', { sessionId, userName });
+    socket.emit('leaveSession', leaveSessionId, userName);
+    sessionId = '';
     inSession = false;
+    document.getElementById('chatBox').style.display = 'none';
     updateButtonLabel();
   } else {
     console.error('No session selected');
@@ -115,18 +141,47 @@ function setupSocketEventHandlers() {
   socket.on('connect', () => console.log('connected'));
   socket.on('disconnect', () => console.log('disconnected'));
   socket.on('message', (data) => {
-    console.log(data);
-    const div = document.getElementById('messages');
-    div.innerHTML += `<p>${message}</p>`; // Append the message to the messages div
+    const messagesDiv = document.getElementById('messages');
+
+    let messageElement = document.createElement('p');
+    if (typeof data === 'object' && 'user' in data && 'message' in data) {
+      // It's a user message
+      messageElement.textContent = `${data.user} said: ${data.message}`;
+    } else if (typeof data === 'object' && 'message' in data) {
+      // It's a server message without a specific user
+      messageElement.textContent = data.message;
+      messageElement.classList.add('server-message'); // Add class for styling server messages differently
+    } else if (typeof data === 'string') {
+      // Handling string messages (you should ensure the server sends consistent message objects)
+      messageElement.textContent = data;
+    } else {
+      // Log an error for any other types of messages
+      console.error('Received message data in an unexpected format:', data);
+      return;
+    }
+
+    // Append the message element to the messages div
+    messagesDiv.appendChild(messageElement);
+    // Scroll to the bottom of the message div to keep the latest message visible
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 }
 function sendMessage() {
-  const message = document.getElementById('messageInput').value;
-  if (message) {
-    socket.emit('chatMessage', message);
-    document.getElementById('messageInput').value = '';
+  const messageInput = document.getElementById('messageInput');
+  const messageValue = messageInput.value;
+
+  if (messageValue && sessionId) {
+    socket.emit('message', {
+      sessionId: sessionId,
+      user: userName,
+      message: messageValue,
+    });
+    messageInput.value = '';
+  } else {
+    console.error('Message or sessionId is missing');
   }
 }
+
 async function signUpIn(event) {
   event.preventDefault();
 
