@@ -2,8 +2,8 @@ const createSessionButton = document.getElementById('createSessionButton');
 const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
-
 let message = document.getElementById('messageInput').value;
+
 let inSession = false;
 let userId = '';
 let userName = '';
@@ -145,24 +145,19 @@ function setupSocketEventHandlers() {
 
     let messageElement = document.createElement('p');
     if (typeof data === 'object' && 'user' in data && 'message' in data) {
-      // It's a user message
       messageElement.textContent = `${data.user} said: ${data.message}`;
     } else if (typeof data === 'object' && 'message' in data) {
-      // It's a server message without a specific user
       messageElement.textContent = data.message;
-      messageElement.classList.add('server-message'); // Add class for styling server messages differently
+      messageElement.classList.add('server-message');
     } else if (typeof data === 'string') {
-      // Handling string messages (you should ensure the server sends consistent message objects)
       messageElement.textContent = data;
     } else {
-      // Log an error for any other types of messages
       console.error('Received message data in an unexpected format:', data);
+
       return;
     }
 
-    // Append the message element to the messages div
     messagesDiv.appendChild(messageElement);
-    // Scroll to the bottom of the message div to keep the latest message visible
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 }
@@ -199,15 +194,14 @@ async function signUpIn(event) {
       document.getElementById('signInStatus').textContent =
         'User signed in successfully';
       console.log('Signed in successfully:', response.data);
-      // Update userName and userId here
       userName = response.data.userName;
       userId = response.data.userId;
       console.log('Updated userName:', userName, userId);
       if (userId || userName) {
-        fetchSessions(); // Fetch sessions if user is signed in
+        fetchSessions();
       }
       createSessionButton.disabled = false;
-      socketConnect(); // Connect to socket if user is signed in
+      socketConnect();
     } catch (error) {
       console.error('Error signing up:', error);
       createSessionButton.disabled = true;
@@ -225,11 +219,10 @@ function updateSessionCreationMessage() {
 }
 
 function checkInputValues() {
-  // Check if both username and email fields have values
   if (authUserNameInput.value && authEmailInput.value) {
-    authButton.disabled = false; // Enable the button if both fields have values
+    authButton.disabled = false;
   } else {
-    authButton.disabled = true; // Keep the button disabled otherwise
+    authButton.disabled = true;
   }
 }
 
