@@ -6,34 +6,35 @@ A simple music sharing app that allows users to create a session and share music
 
 The entrypoint file is app.ts and their simple interface that can be found under the views folder
 
-`
+```bash
+
 ├── README.md
 ├── package-lock.json
 ├── package.json
 ├── src
-│   ├── app.ts
-│   ├── controllers
-│   │   └── websock.ts
-│   ├── db
-│   │   └── models
-│   │       ├── session.ts
-│   │       └── user.ts
-│   ├── helpers
-│   ├── routes
-│   │   ├── index.ts
-│   │   ├── session_routes.ts
-│   │   └── user_routes.ts
-│   └── tests
-│       ├── session_tests.ts
-│       └── users_tests.ts
+│ ├── app.ts
+│ ├── controllers
+│ │ └── websock.ts
+│ ├── db
+│ │ └── models
+│ │ ├── session.ts
+│ │ └── user.ts
+│ ├── helpers
+│ ├── routes
+│ │ ├── index.ts
+│ │ ├── session_routes.ts
+│ │ └── user_routes.ts
+│ └── tests
+│ ├── session_tests.ts
+│ └── users_tests.ts
 ├── tsconfig.json
 └── views
-    ├── frontend.ejs
-    ├── script.js
-    └── styles.css
+├── frontend.ejs
+├── script.js
+└── styles.css
 
 9 directories, 16 files
-`
+```
 
 ## Instructions
 
@@ -64,8 +65,4 @@ If host leaves the room, someone else is randomly selected to be the new host wi
 ## To Do
 
 Bugs to fix:
-    from step 5 onwards
-
-
-
-
+from step 9 onwards

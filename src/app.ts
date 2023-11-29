@@ -51,12 +51,19 @@ io.on('connection', (socket) => {
   socket.on('joinSession', (sessionId, user) => {
     console.log(`User ${user} joined session ${sessionId}`);
     socket.join(sessionId);
-    io.in(sessionId).emit('joinSession', `${user} has joined the channel`);
+    io.in(sessionId).emit('message', {
+      sessionId,
+      user,
+      message: `${user} has joined the channel`,
+    });
   });
 
   socket.on('leaveSession', (sessionId, user) => {
-    console.log(`User ${user} left session ${sessionId}`);
-    io.in(sessionId).emit('leaveSession', `${user} has left the channel`);
+    io.in(sessionId).emit('message', {
+      sessionId,
+      user,
+      message: `${user} has left the channel`,
+    });
     socket.leave(sessionId);
   });
 
@@ -64,7 +71,11 @@ io.on('connection', (socket) => {
     let playStateString = playState
       ? 'The music is playing'
       : 'The music has been paused';
-    io.in(sessionId).emit('playMusic', playStateString);
+
+    io.in(sessionId).emit('message', {
+      sessionId: sessionId,
+      message: playStateString,
+    });
   });
 
   socket.on('message', (data) => {
