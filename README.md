@@ -52,14 +52,23 @@ The entrypoint file is app.ts and their simple interface that can be found under
 ## Areas of improvemeent
 
 updated_at to session and user schema
+
 host has ability to create a playlist
+
 host can eject people from the room
+
 host can mute people
+
 host can skip songs
+
 user authentication
+
 split log-in/sign-in up
+
 rooms list
+
 If user join another room the user may be forced to to leave the room they are in.
+
 If host leaves the room, someone else is randomly selected to be the new host with admin permissions.
 
 ## To Do
