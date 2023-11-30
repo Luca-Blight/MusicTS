@@ -51,6 +51,8 @@ The entrypoint file is app.ts and their simple interface that can be found under
 
 ## Areas of improvemeent
 
+fix messaging format when user joins or leave a channel
+
 updated_at to session and user schema
 
 host has ability to create a playlist
@@ -73,5 +75,4 @@ If host leaves the room, someone else is randomly selected to be the new host wi
 
 ## To Do
 
-Bugs to fix:
-from step 9 onwards
+Validate #9
