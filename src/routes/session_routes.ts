@@ -50,6 +50,7 @@ router.put('/:sessionId/leave', async (req: Request, res: Response) => {
 
     await leaveSession(sessionId, userId);
     io.to(sessionId).emit('leaveSession', { sessionId, userName });
+    res.send('Left session');
   } catch (error) {
     const errorMessage = (error as Error).message;
     res.status(500).send(errorMessage);

@@ -11,7 +11,7 @@ import { Server } from 'socket.io';
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3001;
-const DB_PASSWORD = process.env.db_password;
+const DB_PASSWORD = process.env.DB_PASSWORD;
 
 const app: Express = express();
 
@@ -27,11 +27,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // MongoDB configuration
-const MONGO_URL = `mongodb+srv://rythm:${process.env.DB_PASSWORD}@cluster0.mb8znck.mongodb.net/?retryWrites=true&w=majority`;
+const MONGO_URL = `mongodb+srv://rythm:${DB_PASSWORD}@cluster0.mb8znck.mongodb.net/?retryWrites=true&w=majority`;
 
 mongoose.Promise = Promise;
-mongoose.connect(MONGO_URL);
-mongoose.connection.on('error', (error: Error) => console.log(error));
+mongoose.connect(MONGO_URL).catch((error) => {
+  console.error('MongoDB connection error:', error);
+  process.exit(1);
+});
 
 app.use(express.static('views'));
 app.use('/', routes);
@@ -42,6 +44,8 @@ app.get('/', (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server);
+
+let userSessions = new Map<string, { sessionId: string; userName: string }>();
 
 io.on('connection', (socket) => {
   console.log(`Socket ${socket.id} connected`);
@@ -56,15 +60,16 @@ io.on('connection', (socket) => {
       user,
       message: `${user} has joined the channel`,
     });
+    userSessions.set(socket.id, { sessionId, userName: user });
   });
 
   socket.on('leaveSession', (sessionId, user) => {
+    console.log(`User ${user} has left the session ${sessionId}`);
     io.in(sessionId).emit('message', {
       sessionId,
       user,
       message: `${user} has left the channel`,
     });
-    socket.leave(sessionId);
   });
 
   socket.on('playMusic', (sessionId, playState) => {
@@ -86,9 +91,16 @@ io.on('connection', (socket) => {
     }
   });
   socket.on('disconnect', () => {
-    // create function to determine user val
+    let userInfo = userSessions.get(socket.id);
+    if (userInfo) {
+      io.in(userInfo.sessionId).emit('message', {
+        sessionId: userInfo.sessionId,
+        message: `${userInfo.userName} has left the channel`,
+      });
+      userSessions.delete(socket.id);
+      socket.leave(userInfo.sessionId);
+    }
     console.log(`Socket ${socket.id} disconnected`);
-    socket.broadcast.emit('message', 'user disconnected from the channel');
   });
 });
 

@@ -2,9 +2,14 @@ const createSessionButton = document.getElementById('createSessionButton');
 const authButton = document.getElementById('authButton');
 const authUserNameInput = document.getElementById('authUserName');
 const authEmailInput = document.getElementById('authEmail');
-let message = document.getElementById('messageInput').value;
 
-let inSession = false;
+let message = document.getElementById('messageInput');
+let playMusicButton = document.getElementById('playMusicButton');
+let chatBox = document.getElementById('chatBox');
+let messages = document.getElementById('messages');
+let messageInput = document.getElementById('messageInput');
+
+let isInSession = false;
 let playState = false;
 let userId = '';
 let userName = '';
@@ -60,17 +65,17 @@ async function createSession() {
 
 async function joinSession() {
   let selectedSessionId = document.getElementById('sessionDropdown').value;
-  console.log('Session selected:', selectedSessionId);
-  console.log(
-    'Joining session:',
-    selectedSessionId,
-    'User ID:',
-    userId,
-    'Username:',
-    userName
-  );
+
   if (selectedSessionId && userId && userName) {
     try {
+      console.log(
+        'Joining session:',
+        selectedSessionId,
+        'User ID:',
+        userId,
+        'Username:',
+        userName
+      );
       await axios.put(
         `http://localhost:8000/sessions/${selectedSessionId}/join`,
         {
@@ -80,9 +85,9 @@ async function joinSession() {
       );
       socket.emit('joinSession', selectedSessionId, userName);
       sessionId = selectedSessionId;
-      inSession = true;
-      document.getElementById('chatBox').style.display = 'block';
-      document.getElementById('playMusicButton').style.display = 'block';
+      isInSession = true;
+      chatBox.style.display = 'block';
+      playMusicButton.style.display = 'block';
       updateButtonLabel();
     } catch (error) {
       console.error('Error joining session:', error);
@@ -91,28 +96,42 @@ async function joinSession() {
     console.error('Session ID and Username are required');
   }
 }
-
 async function leaveSession() {
-  let leaveSessionId = sessionId;
-  console.log(
-    'Leaving session:',
-    sessionId,
-    'User ID:',
-    userId,
-    'Username:',
-    userName
-  );
-  if (leaveSessionId && userId && userName) {
-    await axios.put(`http://localhost:8000/sessions/${leaveSessionId}/leave`, {
-      userId: userId,
-      userName: userName,
-    });
-    socket.emit('leaveSession', leaveSessionId, userName);
-    sessionId = '';
-    inSession = false;
-    document.getElementById('playMusicButton').style.display = 'none';
-    document.getElementById('chatBox').style.display = 'none';
-    updateButtonLabel();
+
+  if (sessionId && userId && userName && isInSession) {
+    try {
+      await axios.put(
+        `http://localhost:8000/sessions/${sessionId}/leave`,
+        {
+          userId: userId,
+          userName: userName,
+        }
+      );
+      socket.emit('leaveSession', sessionId, userName);
+      console.log(
+        'Leaving session:',
+        sessionId,
+        'User ID:',
+        userId,
+        'Username:',
+        userName
+      );
+
+      // Clear session data
+      sessionId = '';
+      isInSession = false;
+
+      // Update UI elements
+      playMusicButton.style.display = 'none';
+      chatBox.style.display = 'none';
+      messages.innerHTML = '';
+      messageInput.value = '';
+      updateButtonLabel();
+
+      alert('You have left the session.');
+    } catch (error) {
+      console.error('Error leaving session:', error);
+    }
   } else {
     console.error('No session selected');
   }
@@ -120,35 +139,39 @@ async function leaveSession() {
 
 async function playMusic() {
   playState = !playState;
-  try {
-    const response = await axios.put(
-      `http://localhost:8000/sessions/${sessionId}/playMusic`,
-      { playState: playState }
-    );
-    socket.emit('playMusic', sessionId, playState);
-    console.log('Play/Pause response:', response);
-    updatePlayMusicButtonLabel();
-  } catch (error) {
-    console.error('Error playing/pausing music:', error);
+  if (sessionId && userId && userName && isInSession) { 
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/sessions/${sessionId}/playMusic`,
+        { playState: playState }
+      );
+      socket.emit('playMusic', sessionId, playState);
+      console.log('Play/Pause response:', response);
+      updatePlayMusicButtonLabel();
+    } catch (error) {
+      console.error('Error playing/pausing music:', error);
+    }
+} else {
+    console.error('Requirements are not met for playing/pausing music');
   }
-}
+};
 
 function updatePlayMusicButtonLabel() {
-  const playMusicButton = document.getElementById('playMusicButton');
+  let playMusicButton = document.getElementById('playMusicButton');
   if (playMusicButton) {
     playMusicButton.textContent = playState ? 'Stop Music' : 'Play Music';
   }
 }
 
 function updateButtonLabel() {
-  const sessionButton = document.getElementById('sessionToggle');
+  let sessionButton = document.getElementById('sessionToggle');
   if (sessionButton) {
-    sessionButton.textContent = inSession ? 'Leave Session' : 'Join Session';
+    sessionButton.textContent = isInSession ? 'Leave Session' : 'Join Session';
   }
 }
 
 async function toggleSession() {
-  if (inSession) {
+  if (isInSession) {
     await leaveSession();
   } else {
     await joinSession();
@@ -157,7 +180,7 @@ async function toggleSession() {
 }
 
 async function togglePlayPause() {
-  if (inSession) {
+  if (isInSession) {
     await stopMusic();
   } else {
     await playMusic();
@@ -176,7 +199,7 @@ function setupSocketEventHandlers() {
   socket.on('disconnect', () => console.log('disconnected'));
   socket.on('playMusic', () => console.log('music state has changed'));
   socket.on('message', (data) => {
-    const messagesDiv = document.getElementById('messages');
+    let messagesDiv = document.getElementById('messages');
 
     let messageElement = document.createElement('p');
     if (typeof data === 'object' && 'user' in data && 'message' in data) {
@@ -196,6 +219,7 @@ function setupSocketEventHandlers() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 }
+
 function sendMessage() {
   const messageInput = document.getElementById('messageInput');
   const messageValue = messageInput.value;
