@@ -1,4 +1,4 @@
-# Rythm
+# MusicTS
 
 A simple music sharing app that allows users to create a session and share music with other users in the same session.
 
